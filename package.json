@@ -13,13 +13,16 @@
     "d3-geo": "^3.1.1",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
+    "sass": "^1.93.2",
     "topojson-client": "^3.1.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",
+    "@types/d3-geo": "^3.1.0",
     "@types/node": "^24.6.0",
     "@types/react": "^19.1.16",
     "@types/react-dom": "^19.1.9",
+    "@types/topojson-client": "^3.1.5",
     "@vitejs/plugin-react": "^5.0.4",
     "babel-plugin-react-compiler": "^19.1.0-rc.3",
     "eslint": "^9.36.0",
