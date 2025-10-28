@@ -4,6 +4,7 @@ import { feature } from 'topojson-client';
 import worldData from '../../assets/world-110m.json';
 import type { ICountryItem } from '../../types/countryTypes';
 import FormPortal from '../FormPortal/FormPortal';
+import { checkCountry } from '../utils/checkCountry';
 
 import styles from './WordMap.module.scss';
 
@@ -11,11 +12,23 @@ const WorldMap: FC = () => {
    const [hovered, setHovered] = useState<string | null>(null);
    const [isInputting, setIsInputting] = useState<boolean>(false);
    const [inputVal, setInputVal] = useState<string>('');
+   const [selectedCountry, setSelectedCountry] = useState<string>('');
+   const [isGuessed, setIsGuessed] = useState<boolean | null>(null);
 
    const projection = d3.geoMercator().scale(100).translate([400, 250]);
    const pathGenerator = d3.geoPath().projection(projection);
 
    const countries = feature(worldData, worldData.objects.countries).features;
+
+   const handleCountryClick = (country: string) => {
+      setIsGuessed(null);
+      setSelectedCountry(country);
+      setIsInputting(true);
+   }
+
+   const checkIfGuessed = () => {
+      setIsGuessed(checkCountry(selectedCountry, inputVal));
+   }
 
    return (
       <>
@@ -32,7 +45,7 @@ const WorldMap: FC = () => {
                      stroke='#333'
                      onMouseEnter={() => setHovered(name)}
                      onMouseLeave={() => setHovered(null)}
-                     onClick={() => {}}
+                     onClick={() => handleCountryClick(data.properties.name || data.id)}
                   />
                )
             })}
@@ -47,6 +60,12 @@ const WorldMap: FC = () => {
                   id='country' 
                   className={styles.formInput} 
                />
+               <button type='submit' onClick={checkIfGuessed} className={styles.formButton}>Проверить</button>
+               <p className={isGuessed ? styles.success : styles.error}>
+                  {typeof isGuessed === 'boolean' && (
+                     isGuessed ? 'Вы угадали!' : 'Вы не угадали, попробуйте ещё раз'
+                  )}
+               </p>
             </form>
          </FormPortal>
       </>
