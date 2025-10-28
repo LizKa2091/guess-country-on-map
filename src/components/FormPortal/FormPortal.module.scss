@@ -1,0 +1,36 @@
+.modalOverlay {
+   align-items: center;
+   justify-content: center;
+   position: fixed;
+   inset: 0;
+   background: rgba(0, 0, 0, 0.2);
+   z-index: 1;
+   color: #000;
+
+   .modalContainer {
+      display: flex;
+      justify-content: center;
+      flex-direction: column;
+      position: relative;
+      width: 50%;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: rgba(70, 109, 69, 0.2);
+      border-radius: 16px;
+      padding: 25px;
+   }
+}
+
+.buttonContainer {
+   display: flex;
+   flex-direction: column;
+   align-items: end;
+
+   .closeButton {
+      border-radius: 6px;
+      width: 25px;
+      height: 25px;
+      cursor: pointer;
+   }
+}
