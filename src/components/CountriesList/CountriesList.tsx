@@ -29,7 +29,6 @@ const CountriesList: FC = () => {
             )}
          </ul>
       </div>
-      
    )
 }
 
