@@ -1,11 +1,7 @@
 import { create } from "zustand";
 import worldData from './../assets/world-110m.json';
 import { feature } from 'topojson-client';
-import type { ICountryItem } from "../types/countryTypes";
-
-interface IStatusedCountryItem extends ICountryItem {
-   status: 'not found' | 'found';
-}
+import type { IStatusedCountryItem } from "../types/countryTypes";
 
 interface ICountriesState {
    countries: IStatusedCountryItem[],
@@ -13,7 +9,7 @@ interface ICountriesState {
    resetCountries: () => void;
 }
 
-const initialCountries: ICountryItem[] = feature(worldData, worldData.objects.countries).features;
+const initialCountries: IStatusedCountryItem[] = feature(worldData, worldData.objects.countries).features;
 const statusedCountries: IStatusedCountryItem[] = initialCountries.map(item => ({
    ...item,
    status: 'not found'

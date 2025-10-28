@@ -5,6 +5,10 @@ export interface ICountryItem {
    type?: string;
 }
 
+export interface IStatusedCountryItem extends ICountryItem {
+   status: 'not found' | 'found';
+}
+
 interface IProperty {
    name?: string
 }
