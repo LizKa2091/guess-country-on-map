@@ -1,51 +1,59 @@
 import { useState, type FC } from 'react';
 import * as d3 from 'd3-geo';
-import type { ICountryItem } from '../../types/countryTypes';
 import FormPortal from '../FormPortal/FormPortal';
 import { checkCountry } from '../utils/checkCountry';
+import { useCountries } from '../../store/countriesStore';
+import type { IStatusedCountryItem } from '../../types/countryTypes';
 
 import styles from './WordMap.module.scss';
 
-interface IWorldMapProps {
-   countries: ICountryItem[];
-}
-
-const WorldMap: FC<IWorldMapProps> = ({ countries }) => {
+const WorldMap: FC = () => {
    const [hovered, setHovered] = useState<string | null>(null);
    const [isInputting, setIsInputting] = useState<boolean>(false);
    const [inputVal, setInputVal] = useState<string>('');
    const [selectedCountry, setSelectedCountry] = useState<string>('');
+   const [selectedCountryId, setSelectedCountryId] = useState<string>('');
    const [isGuessed, setIsGuessed] = useState<boolean | null>(null);
+
+   const { countries, setFoundCountry } = useCountries();
 
    const projection = d3.geoMercator().scale(100).translate([400, 250]);
    const pathGenerator = d3.geoPath().projection(projection);
 
-   const handleCountryClick = (country: string) => {
+   const handleCountryClick = (country: string, id: string) => {
       setIsGuessed(null);
       setSelectedCountry(country);
+      setSelectedCountryId(id);
       setIsInputting(true);
    }
 
    const checkIfGuessed = () => {
-      setIsGuessed(checkCountry(selectedCountry, inputVal));
+      const guessStatus = checkCountry(selectedCountry, inputVal);
+      
+      if (guessStatus) {
+         setFoundCountry(selectedCountryId);
+      }
+
+      setIsGuessed(guessStatus);
    }
 
    return (
       <>
          <svg className={styles.svg}>
-            {countries.map((data: ICountryItem) => {
+            {countries.map((data: IStatusedCountryItem) => {
                const name = data.properties.name || data.id;
                const isHovered = hovered === name;
+               const isSelected = selectedCountryId === data.id;
 
                return (
                   <path
                      key={data.id}
                      d={pathGenerator(data)}
-                     fill={isHovered ? "#ffcc00" : "#ddd"}
+                     fill={isHovered || isSelected ? "#ffcc00" :  data.status === 'found' ? '#00ff59ff' : '#ddd'}
                      stroke='#333'
                      onMouseEnter={() => setHovered(name)}
                      onMouseLeave={() => setHovered(null)}
-                     onClick={() => handleCountryClick(data.properties.name || data.id)}
+                     onClick={() => handleCountryClick(data.properties.name || data.id, data.id)}
                   />
                )
             })}
