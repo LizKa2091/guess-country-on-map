@@ -1,14 +1,16 @@
 import { useState, type FC } from 'react';
 import * as d3 from 'd3-geo';
-import { feature } from 'topojson-client';
-import worldData from '../../assets/world-110m.json';
 import type { ICountryItem } from '../../types/countryTypes';
 import FormPortal from '../FormPortal/FormPortal';
 import { checkCountry } from '../utils/checkCountry';
 
 import styles from './WordMap.module.scss';
 
-const WorldMap: FC = () => {
+interface IWorldMapProps {
+   countries: ICountryItem[];
+}
+
+const WorldMap: FC<IWorldMapProps> = ({ countries }) => {
    const [hovered, setHovered] = useState<string | null>(null);
    const [isInputting, setIsInputting] = useState<boolean>(false);
    const [inputVal, setInputVal] = useState<string>('');
@@ -17,8 +19,6 @@ const WorldMap: FC = () => {
 
    const projection = d3.geoMercator().scale(100).translate([400, 250]);
    const pathGenerator = d3.geoPath().projection(projection);
-
-   const countries = feature(worldData, worldData.objects.countries).features;
 
    const handleCountryClick = (country: string) => {
       setIsGuessed(null);
