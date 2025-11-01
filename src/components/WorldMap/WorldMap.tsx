@@ -1,8 +1,8 @@
-import { useState, type FC } from 'react';
+import { useState, useEffect, type FC } from 'react';
 import * as d3 from 'd3-geo';
-import FormPortal from '../FormPortal/FormPortal';
 import { checkCountry } from '../utils/checkCountry';
 import { useCountries } from '../../store/countriesStore';
+import FormPortal from '../FormPortal/FormPortal';
 import type { IStatusedCountryItem } from '../../types/countryTypes';
 
 import styles from './WordMap.module.scss';
@@ -15,16 +15,23 @@ const WorldMap: FC = () => {
    const [selectedCountryId, setSelectedCountryId] = useState<string>('');
    const [isGuessed, setIsGuessed] = useState<boolean | null>(null);
 
+   const [transform, setTransform] = useState({
+      scale: 1,
+      translateX: 0,
+      translateY: 0,
+   });
+
    const { countries, setFoundCountry } = useCountries();
 
-   const projection = d3.geoMercator().scale(100).translate([400, 250]);
-   const pathGenerator = d3.geoPath().projection(projection);
+   const projection = d3.geoMercator().scale(100).translate([400, 250]); 
+   const pathGenerator = d3.geoPath().projection(projection)
 
-   const handleCountryClick = (country: string, id: string) => {
+   const handleCountryClick = (country: string, id: string, feature: d3.GeoPermissibleObjects) => {
       setIsGuessed(null);
       setSelectedCountry(country);
       setSelectedCountryId(id);
       setIsInputting(true);
+      zoomToCountry(feature);
    }
 
    const checkIfGuessed = () => {
@@ -37,26 +44,59 @@ const WorldMap: FC = () => {
       setIsGuessed(guessStatus);
    }
 
+   const zoomToCountry = (countryFeature: d3.GeoPermissibleObjects) => {
+      const [[x0, y0], [x1, y1]] = pathGenerator.bounds(countryFeature);
+
+      const dx = x1 - x0;
+      const dy = y1 - y0;
+      const x = (x0 + x1) / 2;
+      const y = (y0 + y1) / 2;
+
+      const scale = Math.min(4, 0.9 / Math.max(dx / 800, dy / 500));
+      const translateX = 400 - scale * x;
+      const translateY = 250 - scale * y;
+
+      setTransform({ scale, translateX, translateY });
+   };
+
+   const resetZoom = () => setTransform({ scale: 1, translateX: 0, translateY: 0 });
+
+   useEffect(() => {
+      if (!isInputting) {
+         resetZoom();
+         setSelectedCountry('');
+         setSelectedCountryId('');
+      }
+   }, [isInputting]);
+
    return (
       <>
-         <svg className={styles.svg}>
-            {countries.map((data: IStatusedCountryItem) => {
-               const name = data.properties.name || data.id;
-               const isHovered = hovered === name;
-               const isSelected = selectedCountryId === data.id;
+         <svg viewBox="0 0 800 500" preserveAspectRatio="xMidYMid meet" className={styles.svg}>
+            <g transform={`translate(${transform.translateX}, ${transform.translateY}) scale(${transform.scale})`}>
+               {countries.map((data: IStatusedCountryItem) => {
+                  const name = data.properties.name || data.id;
+                  const isHovered = hovered === name;
+                  const isSelected = selectedCountry === name;
 
-               return (
-                  <path
-                     key={data.id}
-                     d={pathGenerator(data)}
-                     fill={isHovered || isSelected ? "#ffcc00" :  data.status === 'found' ? '#00ff59ff' : '#ddd'}
-                     stroke='#333'
-                     onMouseEnter={() => setHovered(name)}
-                     onMouseLeave={() => setHovered(null)}
-                     onClick={() => handleCountryClick(data.properties.name || data.id, data.id)}
-                  />
-               )
-            })}
+                  let fillColor = '#ddd';
+                  if (data.status === 'found') fillColor = '#00ff59ff';
+                  if (isHovered) fillColor = '#ffcc00';
+                  if (isSelected) fillColor = '#ff8800';
+
+                  return (
+                     <path
+                        key={data.id}
+                        d={pathGenerator(data)}
+                        fill={fillColor}
+                        stroke='#333'
+                        strokeWidth={isSelected ? 1.5 : 0.75}
+                        onMouseEnter={() => setHovered(name)}
+                        onMouseLeave={() => setHovered(null)}
+                        onClick={() => handleCountryClick(name, data.id, data)}
+                     />
+                  );
+               })}
+            </g>
          </svg>
          <FormPortal isShowing={isInputting} setIsShowing={setIsInputting}>
             <form onSubmit={(e) => e.preventDefault()} action='' className={styles.form}>
