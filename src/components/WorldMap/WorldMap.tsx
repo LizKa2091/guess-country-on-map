@@ -17,8 +17,8 @@ const WorldMap: FC = () => {
 
    const { countries, setFoundCountry } = useCountries();
 
-   const projection = d3.geoMercator().scale(100).translate([400, 250]);
-   const pathGenerator = d3.geoPath().projection(projection);
+   const projection = d3.geoMercator().scale(100).translate([400, 250]); 
+   const pathGenerator = d3.geoPath().projection(projection)
 
    const handleCountryClick = (country: string, id: string) => {
       setIsGuessed(null);
@@ -39,7 +39,7 @@ const WorldMap: FC = () => {
 
    return (
       <>
-         <svg className={styles.svg}>
+         <svg viewBox='0 0 800 500' preserveAspectRatio='xMidYMid meet' className={styles.svg}>
             {countries.map((data: IStatusedCountryItem) => {
                const name = data.properties.name || data.id;
                const isHovered = hovered === name;

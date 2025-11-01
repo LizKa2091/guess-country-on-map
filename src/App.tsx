@@ -7,7 +7,6 @@ import './styles/global.scss';
 const App: FC = () => {
    return (
       <div className='app-container'>
-         <h1>guess country on map</h1>
          <WorldMap />
          <CountriesList />
       </div>
