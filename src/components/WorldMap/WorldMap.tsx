@@ -21,7 +21,7 @@ const WorldMap: FC = () => {
       translateY: 0,
    });
 
-   const { countries, setFoundCountry } = useCountries();
+   const { countries, setFoundCountry, tippedCountryId } = useCountries();
 
    const projection = d3.geoMercator().scale(100).translate([400, 250]); 
    const pathGenerator = d3.geoPath().projection(projection)
@@ -77,11 +77,13 @@ const WorldMap: FC = () => {
                   const name = data.properties.name || data.id;
                   const isHovered = hovered === name;
                   const isSelected = selectedCountry === name;
+                  const isTipped = tippedCountryId === data.id;
 
                   let fillColor = '#ddd';
                   if (data.status === 'found') fillColor = '#00ff59ff';
                   if (isHovered) fillColor = '#ffcc00';
                   if (isSelected) fillColor = '#ff8800';
+                  if (isTipped) fillColor = '#66ccff';
 
                   return (
                      <path

@@ -1,10 +1,10 @@
 import { type FC } from 'react';
-
-import styles from './CountriesList.module.scss';
 import { useCountries } from '../../store/countriesStore';
 
+import styles from './CountriesList.module.scss';
+
 const CountriesList: FC = () => {
-   const { countries } = useCountries();
+   const { countries, tipCountry } = useCountries();
    
    const foundCountries = countries.filter((country) => country.status === 'found');
    const notFoundCountries = countries.filter((country) => country.status === 'not found');
@@ -13,8 +13,8 @@ const CountriesList: FC = () => {
       <div className={styles.countriesContainer}>
          <p>Ненайденные страны:</p>
          <ul className={styles.countriesList}>
-            {notFoundCountries.map(country => 
-               <li key={country.id} className={styles.notFoundCountry}>
+            {notFoundCountries.map((country) => 
+               <li key={country.id} onClick={() => tipCountry(country.id)} className={styles.notFoundCountry}>
                   {country.properties.name}
                </li>
             )}
