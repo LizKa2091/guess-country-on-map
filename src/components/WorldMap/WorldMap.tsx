@@ -1,4 +1,4 @@
-import { useState, useEffect, type FC } from 'react';
+import { useState, useEffect, type FC, useCallback, useRef } from 'react';
 import * as d3 from 'd3-geo';
 import { checkCountry } from '../utils/checkCountry';
 import { useCountries } from '../../store/countriesStore';
@@ -21,10 +21,42 @@ const WorldMap: FC = () => {
       translateY: 0,
    });
 
-   const { countries, setFoundCountry, tippedCountryId } = useCountries();
+   const { countries, setFoundCountry, tippedCountryId, tipCountry } = useCountries();
 
    const projection = d3.geoMercator().scale(100).translate([400, 250]); 
-   const pathGenerator = d3.geoPath().projection(projection)
+   const pathGenerator = d3.geoPath().projection(projection);
+
+   const isResettingRef = useRef(false);
+
+   const zoomToCountry = useCallback((countryFeature: d3.GeoPermissibleObjects) => {
+      const [[x0, y0], [x1, y1]] = pathGenerator.bounds(countryFeature);
+
+      const dx = x1 - x0;
+      const dy = y1 - y0;
+      const x = (x0 + x1) / 2;
+      const y = (y0 + y1) / 2;
+
+      const scale = Math.min(4, 0.9 / Math.max(dx / 800, dy / 500));
+      const translateX = 400 - scale * x;
+      const translateY = 250 - scale * y;
+
+      setTransform({ scale, translateX, translateY });
+   }, [pathGenerator]);
+
+   const resetZoom = useCallback(() => {
+      isResettingRef.current = true;
+
+      tipCountry(null);
+      setSelectedCountry('');
+      setSelectedCountryId('');
+      setIsGuessed(null);
+
+      setTransform({ scale: 1, translateX: 0, translateY: 0 });
+
+      setTimeout(() => {
+         isResettingRef.current = false;
+      }, 100);
+   }, [tipCountry]);
 
    const handleCountryClick = (country: string, id: string, feature: d3.GeoPermissibleObjects) => {
       setIsGuessed(null);
@@ -44,33 +76,28 @@ const WorldMap: FC = () => {
       setIsGuessed(guessStatus);
    }
 
-   const zoomToCountry = (countryFeature: d3.GeoPermissibleObjects) => {
-      const [[x0, y0], [x1, y1]] = pathGenerator.bounds(countryFeature);
+   useEffect(() => {
+      if (!tippedCountryId || isResettingRef.current) return;
 
-      const dx = x1 - x0;
-      const dy = y1 - y0;
-      const x = (x0 + x1) / 2;
-      const y = (y0 + y1) / 2;
+      const countryFeature = countries.find(c => c.id === tippedCountryId);
+      if (!countryFeature) return;
 
-      const scale = Math.min(4, 0.9 / Math.max(dx / 800, dy / 500));
-      const translateX = 400 - scale * x;
-      const translateY = 250 - scale * y;
-
-      setTransform({ scale, translateX, translateY });
-   };
-
-   const resetZoom = () => setTransform({ scale: 1, translateX: 0, translateY: 0 });
+      if (!isInputting) {
+         zoomToCountry(countryFeature as unknown as d3.GeoPermissibleObjects);
+      }
+   }, [countries, tippedCountryId, zoomToCountry, isInputting]);
 
    useEffect(() => {
       if (!isInputting) {
          resetZoom();
-         setSelectedCountry('');
-         setSelectedCountryId('');
       }
-   }, [isInputting]);
+   }, [isInputting, resetZoom]);
 
    return (
       <>
+         <div className={styles.controls}>
+            <button onClick={resetZoom} className={styles.controlButton}>Сбросить зум</button>
+         </div>
          <svg viewBox="0 0 800 500" preserveAspectRatio="xMidYMid meet" className={styles.svg}>
             <g transform={`translate(${transform.translateX}, ${transform.translateY}) scale(${transform.scale})`}>
                {countries.map((data: IStatusedCountryItem) => {
