@@ -94,7 +94,7 @@ const WorldMap: FC = () => {
    }, [isInputting, resetZoom]);
 
    return (
-      <>
+      <div className={styles.container}>
          <div className={styles.controls}>
             <button onClick={resetZoom} className={styles.controlButton}>Сбросить зум</button>
          </div>
@@ -145,7 +145,7 @@ const WorldMap: FC = () => {
                </p>
             </form>
          </FormPortal>
-      </>
+      </div>
    )
 }
 
